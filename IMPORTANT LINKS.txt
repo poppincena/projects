@@ -1,0 +1,5 @@
+https://github.com/sshevlyagin/strava-api-v3.1/blob/master/docs/StreamsApi.md#get_activity_streams
+
+https://developers.strava.com/docs/reference/#api-Streams-getActivityStreams
+
+https://rdrr.io/github/fawda123/rStrava/man/get_streams.html
