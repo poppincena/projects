@@ -19,7 +19,9 @@ payload = {
 
 print("Requesting Token...\n")
 response = requests.post(auth_url, data=payload, verify=False)
+print(response.json())
 access_token = response.json()['access_token']
+
 print("Access Token = {}\n".format(access_token))
 
 header = {'Authorization': 'Bearer ' + access_token}
@@ -41,11 +43,11 @@ print(tm)
 
 # plotting graph for hr against time
 
-plt.plot(tm,heart_rate)
-plt.xlabel('time')
-plt.ylabel('Heart_Rate')
-plt.title('HEART RATE VS TIME FOR AMAZFIT VERGE LITE')
-plt.show()
+# plt.plot(tm,heart_rate)
+# plt.xlabel('time')
+# plt.ylabel('Heart_Rate')
+# plt.title('HEART RATE VS TIME FOR AMAZFIT VERGE LITE')
+# plt.show()
 
 # print(my_dataset)
 # check for status code 200
