@@ -1,4 +1,5 @@
 import get_auth_token
+import get_activity_streams
 import requests
 import urllib3
 import csv
@@ -8,60 +9,64 @@ from pandas import json_normalize
 import json
 import os
 
-directory_name = "data_csv"
-if not os.path.exists("data_csv"):
-    os.mkdir("data_csv")
+try:
 
-# requesting access token
-access_token = get_auth_token.authenticate()
-activites_url = "https://www.strava.com/api/v3/athlete/activities"
+    directory_name = "data_csv"
+    if not os.path.exists("data_csv"):
+        os.mkdir("data_csv")
 
-# requesting workout data
-# per_page = no of requested activities, example 10 represents last 10 activities
-header = {'Authorization': 'Bearer ' + access_token}
-param = {'per_page': 20, 'page': 1}
-my_dataset = requests.get(activites_url, headers=header, params=param).json()
-# use my_dataset and an index to extract the dictionary containing data for the required activity
-# print(my_dataset[1])
-# formatted_dataset = json.dumps(my_dataset, indent=1)
-# print(formatted_dataset)
+    # Requesting access token
+    access_token = get_auth_token.authenticate()
+    activites_url = "https://www.strava.com/api/v3/athlete/activities"
 
-
-#traverse through all activities at once
-for activity in my_dataset:
-    # print((activity)
-    required_data = {
-        'name' : activity['name'],
-        'distance' : activity['distance'],
-        'activity_time': activity['elapsed_time'],
-        'elevation_gain': activity['total_elevation_gain'],
-        'type' : activity['sport_type'],
-        'date' : activity['start_date_local'],
-        'avg_speed' : activity['average_speed'],
-        'max_speed' : activity['max_speed']
-    }
-    if activity.get("has_heartrate"):
-        required_data['avg_heartrate'] = activity['average_heartrate']
-        required_data['max_heartrate'] = activity['max_heartrate']
-    else:
-        required_data['avg_heartrate'] = 'no_data'
-        required_data['max_heartrate'] = 'no_data'
-
-    print(required_data)
+    # Requesting workout data
+    # Rer_page = no of requested activities, example 10 represents last 10 activities
+    header = {'Authorization': 'Bearer ' + access_token}
+    param = {'per_page': 100, 'page': 1}
+    my_dataset = requests.get(activites_url, headers=header, params=param).json()
+    # Use my_dataset and an index to extract the dictionary containing data for the required activity
+    # Print(my_dataset[1])
+    # formatted_dataset = json.dumps(my_dataset, indent=1)
+    # print(formatted_dataset)
 
 
+    #Traverse through all activities at once
+    for activity in my_dataset:
+        id = activity['id']
+        hr_stream = get_activity_streams.get_heartrate_stream(id)
+        hr_stream_data = []
+
+        if hr_stream.get('heartrate') is not None:
+            hr_stream_data = hr_stream['heartrate']['data']
+            # print(hr_stream_data)
+          # print(hr_stream['heartrate']['data'])
+
+        required_data = {
+            'name' : activity['name'],
+            'distance' : activity['distance'],
+            'activity_time': activity['elapsed_time'],
+            'elevation_gain': activity['total_elevation_gain'],
+            'type' : activity['sport_type'],
+            'date' : activity['start_date_local'],
+            'avg_speed' : activity['average_speed'],
+            'max_speed' : activity['max_speed']
+        }
+        if activity.get("has_heartrate"):
+            required_data['avg_heartrate'] = activity['average_heartrate']
+            required_data['max_heartrate'] = activity['max_heartrate']
+            required_data['hr_stream'] = hr_stream_data
+        else:
+            required_data['avg_heartrate'] = 'no_data'
+            required_data['max_heartrate'] = 'no_data'
+
+        # get_activity_streams.get_heartrate_stream()
+
+        print(required_data)
 
 
 
-
-
-
-
-
-
-
-
-
+except Exception as error:
+    print(error)
 
 
 
