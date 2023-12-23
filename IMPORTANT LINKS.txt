@@ -3,3 +3,5 @@ https://github.com/sshevlyagin/strava-api-v3.1/blob/master/docs/StreamsApi.md#ge
 https://developers.strava.com/docs/reference/#api-Streams-getActivityStreams
 
 https://rdrr.io/github/fawda123/rStrava/man/get_streams.html
+
+https://www.youtube.com/watch?v=2FPNb1XECGs&list=PLO6KswO64zVvcRyk0G0MAzh5oKMLb6rTW&index=4
