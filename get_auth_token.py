@@ -18,11 +18,14 @@ try:
         }
 
         # Requesting auth token
-        print("Requesting Token...\n")
+        # print("Requesting Token...\n")
         response = requests.post(auth_url, data=payload, verify=False)
-        print(response.json())
+        # print(response.json())
+
+
+
         access_token = response.json()['access_token']
-        print("Access Token = {}\n".format(access_token))
+        # print("Access Token = {}\n".format(access_token))
         return access_token
 
 except Exception as error:

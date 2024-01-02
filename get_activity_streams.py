@@ -21,8 +21,19 @@ def get_heartrate_stream(id):
             'per_page': 10,
             'page': 1
         }
-        my_dataset = requests.get(streams_url, headers=header, params=param).json()
+        response = requests.get(streams_url, headers=header, params=param)
+
+        my_dataset = response.json()
+
+        if 'errors' in my_dataset and any(error.get('code') == 'exceeded' for error in my_dataset['errors']):
+            print("Rate Limit Exceeded. Please try again later.")
+
+        else:
+            # if rate limit is not exceeded
+            # print(my_dataset)
+            pass
         # print(my_dataset)
+
         return my_dataset
 
     except Exception as error:
