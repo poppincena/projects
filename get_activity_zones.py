@@ -1,12 +1,6 @@
 import get_auth_token
 import requests
-import urllib3
-import csv
-import matplotlib.pyplot as plt
-import pandas as pd
-from pandas import json_normalize
-import json
-import os
+
 
 access_token = get_auth_token.authenticate()
 

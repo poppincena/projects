@@ -10,7 +10,7 @@ age = 24
 weight = 64
 
 try:
-    #checking activities in database
+    # checking activities in database
     activity_ids = push_to_database.check_activity_in_db()
 
     # Requesting access token
@@ -18,9 +18,11 @@ try:
     activities_url = "https://www.strava.com/api/v3/athlete/activities"
 
     # Requesting workout data
-    # Req_page = no of requested activities, example 10 represents last 10 activities
+    # Req_page = no of requested activities, example 10 represents last 10 activities, max 200 per page,
+    # example per page:200 , page:2 = total 400 activities spread across 2 pages
+
     header = {'Authorization': 'Bearer ' + access_token}
-    param = {'per_page': 300, 'page': 1}
+    param = {'per_page': 200, 'page': 3}
 
     try:
         response = requests.get(activities_url, headers=header, params=param)
@@ -28,12 +30,11 @@ try:
         if 'errors' in my_dataset and any(error.get('code') == 'exceeded' for error in my_dataset['errors']):
             print("Rate Limit Exceeded. Please try again later.")
 
-
         else:
+
             # if rate limit is not exceeded
             # print(my_dataset)
             pass
-
 
         # Use my_dataset and an index to extract the dictionary containing data for the required activity
         # print(my_dataset)
@@ -46,73 +47,79 @@ try:
 
     # Traverse through all activities at once
 
-
-    for activity in my_dataset:
-        # print(activity)
-        id = activity['id']
-
-        if id not in activity_ids:
-
+    def process_activities():
+        for activity in my_dataset:
             # print(activity)
-            # print(hr_stream)
-            # print(hr_stream['heartrate']['data'])
+            id = activity['id']
 
-            required_data = {
-                'activity_id': f'{id}',
-                'name': activity['name'],
-                'activity_time': activity['elapsed_time']/60,
-                'distance': activity['distance'],
-                'elevation_gain': activity['total_elevation_gain'],
-                'type': activity['sport_type'],
-                'date': activity['start_date_local'],
-                'avg_speed': activity['average_speed'],
-                'max_speed': activity['max_speed'],
-                'weight' : None
+            if id not in activity_ids:
 
-            }
-            if activity.get("has_heartrate"):
+                # print(activity)
+                # print(hr_stream)
+                # print(hr_stream['heartrate']['data'])
 
-                hr_stream_data = get_activity_streams.get_heartrate_stream(id)
-                hr_stream = []
+                required_data = {
+                    'activity_id': f'{id}',
+                    'name': activity['name'],
+                    'activity_time': activity['elapsed_time'] / 60,
+                    'distance': activity['distance'],
+                    'elevation_gain': activity['total_elevation_gain'],
+                    'type': activity['sport_type'],
+                    'date': activity['start_date_local'],
+                    'avg_speed': activity['average_speed'],
+                    'max_speed': activity['max_speed'],
+                    'weight': None
 
-                if hr_stream_data.get('heartrate') is not None:
-                    hr_stream = hr_stream_data['heartrate']['data']
-                    time_stream_data = hr_stream_data['time']['data']
+                }
+                if activity.get("has_heartrate"):
 
-                required_data['avg_heartrate'] = activity['average_heartrate']
-                required_data['max_heartrate'] = activity['max_heartrate']
-                required_data['hr_stream'] = hr_stream
-                required_data['time_stream'] = time_stream_data
+                    hr_stream_data = get_activity_streams.get_heartrate_stream(id)
+                    hr_stream = []
 
-                # calculate calories burnt
-                calories_burned = (required_data['activity_time'] / 60) * (
-                        required_data['avg_heartrate'] * 0.6309 + weight * 0.1988 + age * 0.2017 - 55.0969) / 4.184
+                    if hr_stream_data.get('heartrate') is not None:
+                        hr_stream = hr_stream_data['heartrate']['data']
+                        time_stream_data = hr_stream_data['time']['data']
 
-                required_data['calories_burnt'] = calories_burned
+                    required_data['avg_heartrate'] = activity['average_heartrate']
+                    required_data['max_heartrate'] = activity['max_heartrate']
+                    required_data['hr_stream'] = hr_stream
+                    required_data['time_stream'] = time_stream_data
 
-                zones = calculate_hr_zones.calculate_zones(hr_stream)
+                    # calculate calories burnt
+                    calories_burned = (required_data['activity_time']) * (
+                            required_data['avg_heartrate'] * 0.6309 + weight * 0.1988 + age * 0.2017 - 55.0969) / 4.184
 
-                required_data['Zone_1'] = zones['Zone_1']
-                required_data['Zone_2'] = zones['Zone_2']
-                required_data['Zone_3'] = zones['Zone_3']
-                required_data['Zone_4'] = zones['Zone_4']
-                required_data['Zone_5'] = zones['Zone_5']
+                    required_data['calories_burnt'] = calories_burned
 
-            else:
-                required_data['avg_heartrate'] = None
-                required_data['max_heartrate'] = None
-                required_data['time_stream'] = None
+                    zones = calculate_hr_zones.calculate_zones(hr_stream)
 
-                required_data['Zone_1'] = None
-                required_data['Zone_2'] = None
-                required_data['Zone_3'] = None
-                required_data['Zone_4'] = None
-                required_data['Zone_5'] = None
-                required_data['calories_burnt'] = None
+                    required_data['Zone_1'] = zones['Zone_1']
+                    required_data['Zone_2'] = zones['Zone_2']
+                    required_data['Zone_3'] = zones['Zone_3']
+                    required_data['Zone_4'] = zones['Zone_4']
+                    required_data['Zone_5'] = zones['Zone_5']
 
-            print(required_data)
-            push_to_database.insert_data(required_data)
+                else:
+                    required_data['avg_heartrate'] = None
+                    required_data['max_heartrate'] = None
+                    required_data['time_stream'] = None
+
+                    required_data['Zone_1'] = None
+                    required_data['Zone_2'] = None
+                    required_data['Zone_3'] = None
+                    required_data['Zone_4'] = None
+                    required_data['Zone_5'] = None
+                    required_data['calories_burnt'] = None
+
+                print(required_data)
+                push_to_database.insert_activity_data(required_data)
+                push_to_database.insert_hr_stream_data(id, hr_stream_data)
+
+
 
 
 except Exception as error:
     print(error)
+
+if __name__ == '__main__':
+    process_activities()

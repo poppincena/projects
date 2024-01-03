@@ -1,9 +1,6 @@
 import get_auth_token
 import requests
-import urllib3
-import csv
-import json
-import os
+
 
 def get_heartrate_stream(id):
     try:
@@ -26,7 +23,7 @@ def get_heartrate_stream(id):
         my_dataset = response.json()
 
         if 'errors' in my_dataset and any(error.get('code') == 'exceeded' for error in my_dataset['errors']):
-            print("Rate Limit Exceeded. Please try again later.")
+            print("Strava API Rate Limit Exceeded (inside activity streams script).")
 
         else:
             # if rate limit is not exceeded

@@ -22,11 +22,9 @@ try:
         response = requests.post(auth_url, data=payload, verify=False)
         # print(response.json())
 
-
-
         access_token = response.json()['access_token']
         # print("Access Token = {}\n".format(access_token))
         return access_token
 
 except Exception as error:
-    print(error)
+    print(error,'inside get auth token script')

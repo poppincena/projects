@@ -1,6 +1,6 @@
-
 import psycopg2
-
+from psycopg2 import extras
+import json
 # Establish database connection
 try:
     connection = psycopg2.connect(
@@ -14,7 +14,8 @@ try:
     print("Connection established successfully")
     cursor = connection.cursor()
 
-    def insert_data(data):
+
+    def insert_activity_data(activity_data):
         try:
 
             insertion_query = '''    
@@ -30,12 +31,9 @@ try:
                 )
             '''
             cursor = connection.cursor()
-            cursor.execute(insertion_query, data)
+            cursor.execute(insertion_query, activity_data)
 
-
-
-
-            print('Data inserted successfully')
+            print('Activity Data inserted successfully')
             connection.commit()  # Commit changes to the database
 
             cursor.close()
@@ -43,15 +41,46 @@ try:
         except psycopg2.Error as e:
             print('Error occurred while inserting data:', e)
 
-    def check_activity_in_db():
-        check_acitivity_id = 'select activity_id from activities'
-        cursor.execute(check_acitivity_id)
-        rows = cursor.fetchall()
 
-        activity_ids = [row[0] for row in rows]
-        return activity_ids
+    def check_activity_in_db():
+        try:
+            check_acitivity_id = 'select activity_id from activities'
+            cursor.execute(check_acitivity_id)
+            rows = cursor.fetchall()
+
+            activity_ids = [row[0] for row in rows]
+            return activity_ids
+
+        except Exception as error:
+            print(error)
+
+
+    def insert_hr_stream_data(activity_id,stream_data):
+
+        try:
+            insertion_query = '''    
+                            INSERT INTO hr_stream_data (
+                                activity_id, time_stream, hr_stream
+                            )
+                            VALUES (%s, %s, %s)
+                        '''
+
+            # stream_data_tuple = tuple(zip(activity_id,stream_data['heartrate']['data'], stream_data['time']['data']))
+            # stream_data_tuple = tuple(
+            #     zip([activity_id] * len(stream_data['heartrate']['data']), stream_data['heartrate']['data'],
+            #         stream_data['time']['data']))
+
+            time_stream_json = json.dumps(stream_data['time']['data'])
+            hr_stream_json = json.dumps(stream_data['heartrate']['data'])
+
+            cursor.execute(insertion_query, (activity_id, time_stream_json, hr_stream_json))
+            print("hr stream data inserted")
+        except Exception as error:
+            print(error)
+
 
     # connection.close()
+
 
 except psycopg2.Error as error:
     print("Database connection failed:", error)
